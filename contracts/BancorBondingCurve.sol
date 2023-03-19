@@ -2,7 +2,7 @@ pragma solidity >0.4.25;
 
 import "./BancorFormula.sol";
 import "../lib/ValidGasPrice.sol";
-import "../interfaces/IBondingCurve.sol";
+import "./IBondingCurve.sol";
 
 
 contract BancorBondingCurve is IBondingCurve, BancorFormula {
