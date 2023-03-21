@@ -1,6 +1,6 @@
 pragma solidity >=0.8.0;
 import "./Power.sol";
-import "./Math.sol";
+import "./SafeMath.sol";
 
 /**
  * Bancor formula by Bancor
