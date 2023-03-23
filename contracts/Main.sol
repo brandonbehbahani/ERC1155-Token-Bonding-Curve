@@ -4,35 +4,13 @@ pragma solidity ^0.8.0;
 import "./ERC1155.sol";
 
 contract Main is ERC1155 {
-    ERC1155 public erc1155;
 
-        uint256 public reserveRatio;
-        uint256 public totalSupply;
-        uint256 public reserveBalance;
-        uint256 public tokenPrice;
+    uint256 public reserveRatio;
+    uint256 public totalSupply;
+    uint256 public reserveBalance;
+    uint256 public tokenPrice;
 
-    
-
-    function mint(uint256 amount, uint256 id) public {
-
-        address(this).transfer(msg.value);
-
-        _mint(msg.sender, id, amount, "");
-        
-    }
-
-
-
-
-
-    }
-
-    function burn(uint256 amount, uint256 id) public {
-        
-
-        _burn(msg.sender, id, amount);
-    }
-
+    mapping (address => uint256) reserveRatio;
 
     function buyToken(uint256 ethAmount, uint256 reserveRatio, uint256 tokenSupply, uint256 reserveBalance) public returns (uint256) {
         uint256 tokenAmount = calculatePurchaseReturn(ethAmount, reserveBalance, reserveRatio, tokenSupply);
@@ -52,9 +30,6 @@ contract Main is ERC1155 {
         return tokenAmount;
     }
 
-
-
-}
 
 
 
