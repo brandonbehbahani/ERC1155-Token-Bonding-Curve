@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./ERC1155.sol";
+import "./BancorFormula.sol";
 
 contract Main is ERC1155 {
 
@@ -10,7 +11,15 @@ contract Main is ERC1155 {
     uint256 public reserveBalance;
     uint256 public tokenPrice;
 
-    mapping (address => uint256) reserveRatio;
+    struct Token {
+        uint256 reserveRatio;
+        uint256 totalSupply;
+        uint256 reserveBalance;
+        uint256 tokenPrice;
+    }
+
+
+    mapping (address => Token) allTokens;
 
     function buyToken(uint256 ethAmount, uint256 reserveRatio, uint256 tokenSupply, uint256 reserveBalance) public returns (uint256) {
         uint256 tokenAmount = calculatePurchaseReturn(ethAmount, reserveBalance, reserveRatio, tokenSupply);

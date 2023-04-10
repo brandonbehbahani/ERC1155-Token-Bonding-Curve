@@ -13,7 +13,6 @@ import "./SafeMath.sol";
 contract BancorFormula is Power {
   using SafeMath for uint256;
 
-  string public version = "0.3";
   uint32 private constant MAX_WEIGHT = 1000000;
 
   /**
