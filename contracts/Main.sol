@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import "./ERC1155.sol";
 import "./BancorFormula.sol";
-import "./SafeMath.sol";
 
 contract Main is ERC1155, BancorFormula {
 
@@ -27,12 +26,26 @@ contract Main is ERC1155, BancorFormula {
 
     mapping (uint256 => uint256) public totalSupplies;
 
+    mapping (uint256 => bool) public isBonded;
+
     function mintToken(address _userAddress, uint256 _id, uint256 _amount) public {
-        _mint(_userAddress, _id, _amount, "");
+        uint256 amount = calculateCurvedMintReturn(_id, deposit);
+        _mint(user, _id, amount, '');
+        emit CurvedMint(user, amount, deposit);
+        
+        currentPrice[_id] = amount.div(deposit);
+        
+        return amount;
     }
 
     function burnToken(address _userAddress, uint256 _id, uint256 _amount) public {
-        _burn(_id, _amount, "");
+        uint256 reimbursement = calculateCurvedBurnReturn(_id, amount);
+        _burn(user, _id, amount);
+        emit CurvedBurn(user, amount, reimbursement);
+    
+        currentPrice[_id] = amount.div(reimbursement);
+    
+        return reimbursement;
     }
 
     function createNewToken(uint32 _reserveRatio, uint256 _initialSupply, uint256 _initialPoolBalance)public returns (uint256 id){
