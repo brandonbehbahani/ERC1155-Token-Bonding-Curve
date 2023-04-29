@@ -38,7 +38,7 @@ contract Main is ERC1155, BancorFormula {
     }
 
     function mintToken(address _userAddress, uint256 _id, uint256 _amount) public {
-        _curvedMint(_userAddress, _id, _amount, "");
+        _mint(_userAddress, _id, _amount, "");
     }
 
     /**
