@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "./ERC1155.sol";
 import "./BancorFormula.sol";
-import "./SafeMath.sol";
 
 contract Main is ERC1155, BancorFormula {
+
+    
 
     uint256 public totalTokens = 0;
 
@@ -27,21 +28,43 @@ contract Main is ERC1155, BancorFormula {
 
     mapping (uint256 => uint256) public totalSupplies;
 
-    function mintToken(address _userAddress, uint256 _id, uint256 _amount) public {
-        _mint(_userAddress, _id, _amount, "");
+    modifier onlyAdmin() {
+        require(isAdmin(msg.sender), "AdminRole: caller does not have the Admin role");
+        _;
     }
 
-    function burnToken(address _userAddress, uint256 _id, uint256 _amount) public {
-        _burn(_id, _amount, "");
+    function isAdmin(address account) public view returns (bool) {
+        return _admins.has(account);
+    }
+
+    function mintToken(address _userAddress, uint256 _id, uint256 _amount) public {
+        _curvedMint(_userAddress, _id, _amount, "");
+    }
+
+    /**
+    * @dev Mint tokens
+    *
+    * @param amount Amount of tokens to deposit
+    */
+    function _curvedMint(uint256 _id, uint256 amount) internal returns (uint256) {
+        require(safeTransferFrom(msg.sender, address(this), 0, amount));
+        poolBalances[_id] = poolBalances[_id].add(amount);
+        super._curvedMint(_id, amount);
     }
 
     function createNewToken(uint32 _reserveRatio, uint256 _initialSupply, uint256 _initialPoolBalance)public returns (uint256 id){
         require(_reserveRatio > 0 && _initialSupply > 0 && _initialPoolBalance > 0, "Initial values must not be zero");
-        totalTokens = totalTokens.add(1);
+        totalTokens++;
         calculatePurchaseReturn(totalSupplies[totalTokens], poolBalances[totalTokens], reserveRatios[totalTokens], _initialPoolBalance);
         poolBalances[totalTokens] = _initialPoolBalance;
         totalSupplies[totalTokens] = _initialSupply;
         reserveRatios[totalTokens] = _reserveRatio;
     }
+
+    function setBaseMetadataURI(string memory _baseUri) public onlyAdmin {
+        _setBaseMetadataURI(_baseUri); 
+    }
+
+
 }
 
