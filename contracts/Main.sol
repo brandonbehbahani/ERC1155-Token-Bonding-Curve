@@ -65,11 +65,11 @@ contract Main is ERC1155, BancorFormula {
 
     function createNewToken(uint32 _reserveRatio, uint256 _initialSupply, uint256 _initialPoolBalance)public returns (uint256 id){
         require(_reserveRatio > 0 && _initialSupply > 0 && _initialPoolBalance > 0, "Initial values must not be zero");
-        totalTokens++;
-        calculatePurchaseReturn(totalSupplies[totalTokens], poolBalances[totalTokens], reserveRatios[totalTokens], _initialPoolBalance);
         poolBalances[totalTokens] = _initialPoolBalance;
         totalSupplies[totalTokens] = _initialSupply;
         reserveRatios[totalTokens] = _reserveRatio;
+        calculatePurchaseReturn(totalSupplies[totalTokens], poolBalances[totalTokens], reserveRatios[totalTokens], _initialPoolBalance);
+        totalTokens++;
     }
 
     function setBaseMetadataURI(string memory _baseUri) public onlyAdmin {
