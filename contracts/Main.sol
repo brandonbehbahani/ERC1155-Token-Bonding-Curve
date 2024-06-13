@@ -46,10 +46,21 @@ contract Main is ERC1155, BancorFormula {
     *
     * @param amount Amount of tokens to deposit
     */
-    function _curvedMint(uint256 _id, uint256 amount) internal returns (uint256) {
+    function curvedMint(uint256 _id, uint256 amount) public returns (uint256) {
         require(safeTransferFrom(msg.sender, address(this), 0, amount));
         poolBalances[_id] = poolBalances[_id].add(amount);
         super._curvedMint(_id, amount);
+    }
+
+    /**
+    * @dev Burn tokens
+    *
+    * @param amount Amount of tokens to deposit
+    */
+    function curvedBurn(uint256 _id, uint256 amount) public returns (uint256) {
+        require(safeTransferFrom(msg.sender, address(this), 0, amount));
+        poolBalances[_id] = poolBalances[_id].add(amount);
+        super._curvedBurn(_id, amount);
     }
 
     function createNewToken(uint32 _reserveRatio, uint256 _initialSupply, uint256 _initialPoolBalance)public returns (uint256 id){
