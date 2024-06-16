@@ -3,10 +3,10 @@ pragma solidity ^0.8.0;
 
 import "./ERC1155.sol";
 import "./BancorFormula.sol";
+import "./Owned.sol";
 
-contract Main is ERC1155, BancorFormula {
+contract Main is ERC1155, BancorFormula, Owned {
 
-    
 
     uint256 public totalTokens = 0;
 
@@ -28,39 +28,11 @@ contract Main is ERC1155, BancorFormula {
 
     mapping (uint256 => uint256) public totalSupplies;
 
-    modifier onlyAdmin() {
-        require(isAdmin(msg.sender), "AdminRole: caller does not have the Admin role");
-        _;
-    }
-
-    function isAdmin(address account) public view returns (bool) {
-        return _admins.has(account);
-    }
+    event CurvedMint(address sender, uint256 amount, uint256 deposit, uint256 id);
+    event CurvedBurn(address sender, uint256 amount, uint256 reimbursement, uint256 id);
 
     function mintToken(address _userAddress, uint256 _id, uint256 _amount) public {
         _mint(_userAddress, _id, _amount, "");
-    }
-
-    /**
-    * @dev Mint tokens
-    *
-    * @param amount Amount of tokens to deposit
-    */
-    function curvedMint(uint256 _id, uint256 amount) public returns (uint256) {
-        require(safeTransferFrom(msg.sender, address(this), 0, amount));
-        poolBalances[_id] = poolBalances[_id].add(amount);
-        super._curvedMint(_id, amount);
-    }
-
-    /**
-    * @dev Burn tokens
-    *
-    * @param amount Amount of tokens to deposit
-    */
-    function curvedBurn(uint256 _id, uint256 amount) public returns (uint256) {
-        require(safeTransferFrom(msg.sender, address(this), 0, amount));
-        poolBalances[_id] = poolBalances[_id].add(amount);
-        super._curvedBurn(_id, amount);
     }
 
     function createNewToken(uint32 _reserveRatio, uint256 _initialSupply, uint256 _initialPoolBalance)public returns (uint256 id){
@@ -72,10 +44,87 @@ contract Main is ERC1155, BancorFormula {
         totalTokens++;
     }
 
-    function setBaseMetadataURI(string memory _baseUri) public onlyAdmin {
+    // --- PUBLIC FUNCTIONS: ---
+
+    function mint(uint256 _amount) public {
+        _curvedMint(_amount);
+    }
+
+    function burn(uint256 _amount) public
+        returns (uint256)
+    {
+        return _curvedBurn(_amount);
+    }
+
+    function setBaseMetadataURI(string memory _baseUri) public {
         _setBaseMetadataURI(_baseUri); 
     }
 
+     function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
+    return calculatePurchaseReturn(totalSupplies[id], poolBalance(), reserveRatio, amount);
+    }
 
+    function calculateCurvedBurnReturn(uint256 amount, uint256 id) public view returns (uint256) {
+        return calculateSaleReturn(totalSupplies[id], poolBalance(), reserveRatio, amount);
+    }
+
+    /**
+    * @dev Mint tokens
+    */
+    function _curvedMint(uint256 deposit) internal returns (uint256) {
+        return _curvedMintFor(msg.sender, deposit);
+    }
+
+    function _curvedMintFor(address user, uint256 deposit)
+        validGasPrice
+        validMint(deposit)
+        internal
+        returns (uint256)
+    {
+        uint256 amount = calculateCurvedMintReturn(deposit);
+        _mint(user, amount);
+        emit CurvedMint(user, amount, deposit);
+        return amount;
+    }
+
+    /**
+    * @dev Burn tokens
+    * @param amount Amount of tokens to withdraw
+    */
+    function _curvedBurn(uint256 amount) internal returns (uint256) {
+        return _curvedBurnFor(msg.sender, amount);
+    }
+
+    function _curvedBurnFor(address user, uint256 amount) validGasPrice validBurn(amount) internal returns (uint256) {
+        uint256 reimbursement = calculateCurvedBurnReturn(amount);
+        _burn(user, amount);
+        emit CurvedBurn(user, amount, reimbursement);
+        return reimbursement;
+    }
+
+    /**
+        @dev Allows the owner to update the gas price limit
+        @param _gasPrice The new gas price limit
+    */
+    function _setGasPrice(uint256 _gasPrice) internal {
+        require(_gasPrice > 0);
+        gasPrice = _gasPrice;
+    }
+
+    // verifies that the gas price is lower than the universal limit
+    modifier validGasPrice() {
+        assert(tx.gasprice <= gasPrice);
+        _;
+    }
+
+    modifier validBurn(uint256 amount) {
+        require(amount > 0 && balanceOf(msg.sender) >= amount);
+        _;
+    }
+
+    modifier validMint(uint256 amount) {
+        require(amount > 0);
+        _;
+    }
 }
 
