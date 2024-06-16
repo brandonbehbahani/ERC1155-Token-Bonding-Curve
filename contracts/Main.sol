@@ -61,11 +61,11 @@ contract Main is ERC1155, BancorFormula, Owned {
     }
 
      function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
-    return calculatePurchaseReturn(totalSupplies[id], poolBalance(), reserveRatio, amount);
+    return calculatePurchaseReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
     function calculateCurvedBurnReturn(uint256 amount, uint256 id) public view returns (uint256) {
-        return calculateSaleReturn(totalSupplies[id], poolBalance(), reserveRatio, amount);
+        return calculateSaleReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
     /**
