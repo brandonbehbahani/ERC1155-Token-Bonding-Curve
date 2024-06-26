@@ -1,5 +1,5 @@
+// SPDX-License-Identifier: Apache
 pragma solidity >0.4.25;
-
 
  /**
  * @title Power function by Bancor

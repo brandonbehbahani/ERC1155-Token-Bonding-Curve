@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./ERC1155.sol";
+import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "./BancorFormula.sol";
-import "./Owned.sol";
 
-contract Main is ERC1155, BancorFormula, Owned {
-
+contract ERC1155BondingCurve is BancorFormula, ERC1155{
 
     uint256 public totalTokens = 0;
 
     uint256 public maxGasPrice = 1 * 10**18;
-
-    // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
-    string private _uri;
 
      /*
     reserve ratio, represented in ppm, 1-1000000
@@ -34,11 +29,8 @@ contract Main is ERC1155, BancorFormula, Owned {
     mapping (uint256 => uint256) public totalSupplies;
 
     event CurvedMint(address sender, uint256 amount, uint256 deposit, uint256 id);
-    event CurvedBurn(address sender, uint256 amount, uint256 reimbursement, uint256 id);
 
-    function mintToken(address _userAddress, uint256 _id, uint256 _amount) public {
-        _mint(_userAddress, _id, _amount, "");
-    }
+    event CurvedBurn(address sender, uint256 amount, uint256 reimbursement, uint256 id);
 
     function createNewToken(uint32 _reserveRatio, uint256 _initialSupply, uint256 _initialPoolBalance)public returns (uint256 id){
         require(_reserveRatio > 0 && _initialSupply > 0 && _initialPoolBalance > 0, "Initial values must not be zero");
@@ -61,36 +53,8 @@ contract Main is ERC1155, BancorFormula, Owned {
         return _curvedBurn(_amount, id);
     }
 
-    function setBaseMetadataURI(string memory _baseUri) public {
-        _setURI(_baseUri); 
-    }
-
-    /**
-     * @dev Sets a new URI for all token types, by relying on the token type ID
-     * substitution mechanism
-     * https://eips.ethereum.org/EIPS/eip-1155#metadata[defined in the ERC].
-     *
-     * By this mechanism, any occurrence of the `\{id\}` substring in either the
-     * URI or any of the values in the JSON file at said URI will be replaced by
-     * clients with the token type ID.
-     *
-     * For example, the `https://token-cdn-domain/\{id\}.json` URI would be
-     * interpreted by clients as
-     * `https://token-cdn-domain/000000000000000000000000000000000000000000000000000000000004cce0.json`
-     * for token type ID 0x4cce0.
-     *
-     * See {uri}.
-     *
-     * Because these URIs cannot be meaningfully represented by the {URI} event,
-     * this function emits no events.
-     */
-    function _setURI(string memory newuri) internal virtual {
-        _uri = newuri;
-    }
-
-
     function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
-    return calculatePurchaseReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
+        return calculatePurchaseReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
     function calculateCurvedBurnReturn(uint256 amount, uint256 id) public view returns (uint256) {
@@ -135,7 +99,7 @@ contract Main is ERC1155, BancorFormula, Owned {
         @dev Allows the owner to update the gas price limit
         @param newPrice The new gas price limit
     */
-    function setMaxGasPrice(uint256 newPrice) public onlyOwner {
+    function setMaxGasPrice(uint256 newPrice) public {
         maxGasPrice = newPrice;
     }
 
@@ -146,7 +110,7 @@ contract Main is ERC1155, BancorFormula, Owned {
     }
 
     modifier validBurn(uint256 amount, uint256 id) {
-        require(amount > 0 && balanceOf[msg.sender][id] >= amount);
+        require(amount > 0 && balanceOf(msg.sender, id) >= amount);
         _;
     }
 
