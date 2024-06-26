@@ -10,6 +10,11 @@ contract Main is ERC1155, BancorFormula, Owned {
 
     uint256 public totalTokens = 0;
 
+    uint256 public maxGasPrice = 1 * 10**18;
+
+    // Used as the URI for all token types by relying on ID substitution, e.g. https://token-cdn-domain/{id}.json
+    string private _uri;
+
      /*
     reserve ratio, represented in ppm, 1-1000000
     1/3 corresponds to y= multiple * x^2
@@ -46,21 +51,45 @@ contract Main is ERC1155, BancorFormula, Owned {
 
     // --- PUBLIC FUNCTIONS: ---
 
-    function mint(uint256 _amount) public {
-        _curvedMint(_amount);
+    function mint(uint256 _amount, uint256 id) public {
+        _curvedMint(_amount, id);
     }
 
-    function burn(uint256 _amount) public
+    function burn(uint256 _amount, uint256 id) public
         returns (uint256)
     {
-        return _curvedBurn(_amount);
+        return _curvedBurn(_amount, id);
     }
 
     function setBaseMetadataURI(string memory _baseUri) public {
-        _setBaseMetadataURI(_baseUri); 
+        _setURI(_baseUri); 
     }
 
-     function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
+    /**
+     * @dev Sets a new URI for all token types, by relying on the token type ID
+     * substitution mechanism
+     * https://eips.ethereum.org/EIPS/eip-1155#metadata[defined in the ERC].
+     *
+     * By this mechanism, any occurrence of the `\{id\}` substring in either the
+     * URI or any of the values in the JSON file at said URI will be replaced by
+     * clients with the token type ID.
+     *
+     * For example, the `https://token-cdn-domain/\{id\}.json` URI would be
+     * interpreted by clients as
+     * `https://token-cdn-domain/000000000000000000000000000000000000000000000000000000000004cce0.json`
+     * for token type ID 0x4cce0.
+     *
+     * See {uri}.
+     *
+     * Because these URIs cannot be meaningfully represented by the {URI} event,
+     * this function emits no events.
+     */
+    function _setURI(string memory newuri) internal virtual {
+        _uri = newuri;
+    }
+
+
+    function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
     return calculatePurchaseReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
@@ -71,19 +100,19 @@ contract Main is ERC1155, BancorFormula, Owned {
     /**
     * @dev Mint tokens
     */
-    function _curvedMint(uint256 deposit) internal returns (uint256) {
-        return _curvedMintFor(msg.sender, deposit);
+    function _curvedMint(uint256 deposit, uint256 id) internal returns (uint256) {
+        return _curvedMintFor(msg.sender, deposit, id);
     }
 
-    function _curvedMintFor(address user, uint256 deposit)
+    function _curvedMintFor(address user, uint256 deposit, uint256 id)
         validGasPrice
         validMint(deposit)
         internal
         returns (uint256)
     {
-        uint256 amount = calculateCurvedMintReturn(deposit);
-        _mint(user, amount);
-        emit CurvedMint(user, amount, deposit);
+        uint256 amount = calculateCurvedMintReturn(deposit, id);
+        _mint(user, id, amount, "");
+        emit CurvedMint(user, amount, deposit, id);
         return amount;
     }
 
@@ -91,40 +120,41 @@ contract Main is ERC1155, BancorFormula, Owned {
     * @dev Burn tokens
     * @param amount Amount of tokens to withdraw
     */
-    function _curvedBurn(uint256 amount) internal returns (uint256) {
-        return _curvedBurnFor(msg.sender, amount);
+    function _curvedBurn(uint256 amount, uint256 id) internal returns (uint256) {
+        return _curvedBurnFor(msg.sender, amount, id);
     }
 
-    function _curvedBurnFor(address user, uint256 amount) validGasPrice validBurn(amount) internal returns (uint256) {
-        uint256 reimbursement = calculateCurvedBurnReturn(amount);
-        _burn(user, amount);
-        emit CurvedBurn(user, amount, reimbursement);
+    function _curvedBurnFor(address user, uint256 amount, uint256 id) validGasPrice validBurn(amount, id) internal returns (uint256) {
+        uint256 reimbursement = calculateCurvedBurnReturn(amount, id);
+        _burn(user, id, amount);
+        emit CurvedBurn(user, amount, reimbursement, id);
         return reimbursement;
     }
 
     /**
         @dev Allows the owner to update the gas price limit
-        @param _gasPrice The new gas price limit
+        @param newPrice The new gas price limit
     */
-    function _setGasPrice(uint256 _gasPrice) internal {
-        require(_gasPrice > 0);
-        gasPrice = _gasPrice;
+    function setMaxGasPrice(uint256 newPrice) public onlyOwner {
+        maxGasPrice = newPrice;
     }
 
     // verifies that the gas price is lower than the universal limit
     modifier validGasPrice() {
-        assert(tx.gasprice <= gasPrice);
+        require(tx.gasprice <= maxGasPrice, "Gas price must be <= maximum gas price to prevent front running attacks.");
         _;
     }
 
-    modifier validBurn(uint256 amount) {
-        require(amount > 0 && balanceOf(msg.sender) >= amount);
+    modifier validBurn(uint256 amount, uint256 id) {
+        require(amount > 0 && balanceOf[msg.sender][id] >= amount);
         _;
     }
 
     modifier validMint(uint256 amount) {
         require(amount > 0);
         _;
-    }
+    }    
+
+    
 }
 
