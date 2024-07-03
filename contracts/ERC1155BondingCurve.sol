@@ -47,10 +47,8 @@ contract ERC1155BondingCurve is BancorFormula, ERC1155{
         _curvedMint(_amount, id);
     }
 
-    function burn(uint256 _amount, uint256 id) public
-        returns (uint256)
-    {
-        return _curvedBurn(_amount, id);
+    function burn(uint256 _amount, uint256 id) public {
+        _curvedBurn(_amount, id);
     }
 
     function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
@@ -118,6 +116,13 @@ contract ERC1155BondingCurve is BancorFormula, ERC1155{
         require(amount > 0);
         _;
     }    
+
+    function sendEther(address payable recipient, uint256 amount) public payable nonReentrant {
+        require(address(this).balance >= amount, "Insufficient balance");
+
+        (bool success, ) = recipient.call{value: amount}("");
+        require(success, "Transfer failed");
+    }
 
     
 }
