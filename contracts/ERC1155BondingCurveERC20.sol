@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BancorFormula.sol";
 
-contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
+contract ERC1155BondingCurveEth is BancorFormula, ERC1155, ERC20 {
 
     uint256 public totalTokens = 0;
 
