@@ -125,12 +125,8 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155, ERC20 {
         require(success, "Transfer failed");
     }
 
-    constructor() public ERC1155("https://game.example/api/item/{id}.json") {
+    constructor() public ERC1155("https://game.example/api/item/{id}.json") ERC20("Gold", "GLD") {
         _mint(msg.sender, 1000000, 10**18, "");
-    }
-
-    constructor(uint256 initialSupply) ERC20("Gold", "GLD") {
-        _mint(msg.sender, initialSupply);
     }
 
     
