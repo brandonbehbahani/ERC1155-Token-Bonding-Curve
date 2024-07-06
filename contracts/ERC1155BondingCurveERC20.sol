@@ -118,11 +118,19 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155, ERC20 {
         _;
     }    
 
-    function sendEther(address payable recipient, uint256 amount) public payable nonReentrant {
+    function sendEther(address payable recipient, uint256 amount) public payable {
         require(address(this).balance >= amount, "Insufficient balance");
 
         (bool success, ) = recipient.call{value: amount}("");
         require(success, "Transfer failed");
+    }
+
+    constructor() public ERC1155("https://game.example/api/item/{id}.json") {
+        _mint(msg.sender, 1000000, 10**18, "");
+    }
+
+    constructor(uint256 initialSupply) ERC20("Gold", "GLD") {
+        _mint(msg.sender, initialSupply);
     }
 
     

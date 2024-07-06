@@ -117,7 +117,7 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
         _;
     }    
 
-    function sendEther(address payable recipient, uint256 amount) public payable nonReentrant {
+    function sendEther(address payable recipient, uint256 amount) public payable {
         require(address(this).balance >= amount, "Insufficient balance");
 
         (bool success, ) = recipient.call{value: amount}("");
