@@ -51,11 +51,11 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
         _curvedBurn(_amount, id);
     }
 
-    function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
+    function calculateCurvedMintReturn(uint256 amount, uint256 id) public returns (uint256) {
         return calculatePurchaseReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
-    function calculateCurvedBurnReturn(uint256 amount, uint256 id) public view returns (uint256) {
+    function calculateCurvedBurnReturn(uint256 amount, uint256 id) public returns (uint256) {
         return calculateSaleReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
@@ -122,6 +122,10 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
 
         (bool success, ) = recipient.call{value: amount}("");
         require(success, "Transfer failed");
+    }
+
+     constructor() public ERC1155("https://game.example/api/item/{id}.json") {
+
     }
 
     

@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "./BancorFormula.sol";
 
-contract ERC1155BondingCurveEth is BancorFormula, ERC1155, ERC20 {
+contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155, ERC20 {
 
     uint256 public totalTokens = 0;
 
@@ -52,11 +52,11 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155, ERC20 {
         _curvedBurn(_amount, id);
     }
 
-    function calculateCurvedMintReturn(uint256 amount, uint256 id) public view returns (uint256) {
+    function calculateCurvedMintReturn(uint256 amount, uint256 id) public returns (uint256) {
         return calculatePurchaseReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
-    function calculateCurvedBurnReturn(uint256 amount, uint256 id) public view returns (uint256) {
+    function calculateCurvedBurnReturn(uint256 amount, uint256 id) public returns (uint256) {
         return calculateSaleReturn(totalSupplies[id], poolBalances[id], reserveRatios[id], amount);
     }
 
@@ -118,12 +118,6 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155, ERC20 {
         _;
     }    
 
-    function sendEther(address payable recipient, uint256 amount) public payable {
-        require(address(this).balance >= amount, "Insufficient balance");
-
-        (bool success, ) = recipient.call{value: amount}("");
-        require(success, "Transfer failed");
-    }
 
     constructor() public ERC1155("https://game.example/api/item/{id}.json") ERC20("Gold", "GLD") {
         _mint(msg.sender, 1000000, 10**18, "");
