@@ -74,6 +74,7 @@ contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155 {
     {
         uint256 amount = calculateCurvedMintReturn(deposit, id);
         _mint(user, id, amount, "");
+        safeTransferFrom(msg.sender, address(this), id,  deposit, '');
         emit CurvedMint(user, amount, deposit, id);
         return amount;
     }
@@ -89,6 +90,7 @@ contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155 {
     function _curvedBurnFor(address user, uint256 amount, uint256 id) validGasPrice validBurn(amount, id) internal returns (uint256) {
         uint256 reimbursement = calculateCurvedBurnReturn(amount, id);
         _burn(user, id, amount);
+        safeTransferFrom(address(this), msg.sender, id,  reimbursement, '');
         emit CurvedBurn(user, amount, reimbursement, id);
         return reimbursement;
     }

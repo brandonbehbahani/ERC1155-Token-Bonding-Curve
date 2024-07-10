@@ -73,6 +73,7 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
         returns (uint256)
     {
         uint256 amount = calculateCurvedMintReturn(deposit, id);
+        
         _mint(user, id, amount, "");
         emit CurvedMint(user, amount, deposit, id);
         return amount;
