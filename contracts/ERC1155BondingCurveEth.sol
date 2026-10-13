@@ -2,9 +2,10 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./BancorFormula.sol";
 
-contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
+contract ERC1155BondingCurveEth is BancorFormula, ERC1155, Ownable {
 
     uint256 public totalTokens = 0;
 
@@ -98,7 +99,7 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
         @dev Allows the owner to update the gas price limit
         @param newPrice The new gas price limit
     */
-    function setMaxGasPrice(uint256 newPrice) public {
+    function setMaxGasPrice(uint256 newPrice) public onlyOwner {
         maxGasPrice = newPrice;
     }
 
@@ -118,14 +119,14 @@ contract ERC1155BondingCurveEth is BancorFormula, ERC1155{
         _;
     }    
 
-    function sendEther(address payable recipient, uint256 amount) public payable {
+    function sendEther(address payable recipient, uint256 amount) public payable onlyOwner {
         require(address(this).balance >= amount, "Insufficient balance");
 
         (bool success, ) = recipient.call{value: amount}("");
         require(success, "Transfer failed");
     }
 
-     constructor() public ERC1155("https://game.example/api/item/{id}.json") {
+     constructor() ERC1155("https://game.example/api/item/{id}.json") Ownable(msg.sender) {
 
     }
 
