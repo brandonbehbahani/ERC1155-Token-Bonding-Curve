@@ -37,15 +37,21 @@ forge build --contracts contracts \
   --out /tmp/erc-out --cache-path /tmp/erc-cache
 ```
 
-There are no tests for the bonding-curve contracts yet (`test/Lock.ts` is the
-Hardhat sample).
+Access-control tests (Foundry, no extra dependencies) live in `test/foundry/`:
+
+```sh
+forge test --contracts contracts \
+  --remappings @openzeppelin/=node_modules/@openzeppelin/ \
+  --out /tmp/erc-out --cache-path /tmp/erc-cache
+```
+
+There are no tests for the curve math yet (`test/Lock.ts` is the Hardhat sample).
 
 ## Known issues
 
-Found by reading the code; none are fixed yet.
+Found by reading the code.
 
 - `mint` takes no payment: the "deposit" argument is a number, no ETH/ERC20 is collected.
 - `mint` / `burn` never update `poolBalances` or `totalSupplies`, so the price never moves; `burn` pays nothing out.
-- `sendEther` (Eth/Weth variants) lets **any caller** send the contract's ETH to any address.
-- `setMaxGasPrice` has no access control.
+- ~~`sendEther` lets any caller send the contract's ETH anywhere~~ and ~~`setMaxGasPrice` has no access control~~: fixed, both are now `onlyOwner` (OpenZeppelin `Ownable`, owner = deployer).
 - Two pairs of files declare the same contract name, which breaks artifact lookup by name.

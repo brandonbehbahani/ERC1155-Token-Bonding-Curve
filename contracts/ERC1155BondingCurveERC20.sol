@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "./BancorFormula.sol";
 
-contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155, ERC20 {
+contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155, ERC20, Ownable {
 
     uint256 public totalTokens = 0;
 
@@ -98,7 +99,7 @@ contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155, ERC20 {
         @dev Allows the owner to update the gas price limit
         @param newPrice The new gas price limit
     */
-    function setMaxGasPrice(uint256 newPrice) public {
+    function setMaxGasPrice(uint256 newPrice) public onlyOwner {
         maxGasPrice = newPrice;
     }
 
@@ -119,7 +120,7 @@ contract ERC1155BondingCurveERC20 is BancorFormula, ERC1155, ERC20 {
     }    
 
 
-    constructor() public ERC1155("https://game.example/api/item/{id}.json") ERC20("Gold", "GLD") {
+    constructor() ERC1155("https://game.example/api/item/{id}.json") Ownable(msg.sender) ERC20("Gold", "GLD") {
         _mint(msg.sender, 1000000, 10**18, "");
     }
 
